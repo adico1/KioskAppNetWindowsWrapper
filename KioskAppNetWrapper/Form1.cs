@@ -10,11 +10,17 @@ using System.Windows.Forms;
 
 namespace KioskAppNetWrapper
 {
-    public partial class Form1 : Form
+    public partial class mainWindow : Form
     {
-        public Form1()
+        public mainWindow()
         {
             InitializeComponent();
+
+            if (Uri.TryCreate(
+                SettingsHelper.ReadSetting("kioskUrl"), UriKind.Absolute, out Uri kioskUrl))
+            {
+                webBrowser1.Url = kioskUrl;
+            }
         }
     }
 }
