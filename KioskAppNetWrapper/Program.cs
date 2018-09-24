@@ -27,18 +27,21 @@ namespace KioskAppNetWrapper
 
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
-            string lastRestartDateStr = SettingsHelper.ReadSetting("lastRestartDate");
-            string restartAtHourStr = SettingsHelper.ReadSetting("restartAtHour");
-
-            lastRestartDate = DateTime.Parse(lastRestartDateStr);
-            if (int.TryParse(restartAtHourStr, out restartAtHour)) {
-                restartAtHour = 4;
-            }
-
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             try
             {
+                MailHelper.sendMail("Application Starting", "application started as planned");
+
+                string lastRestartDateStr = SettingsHelper.ReadSetting("lastRestartDate");
+                string restartAtHourStr = SettingsHelper.ReadSetting("restartAtHour");
+
+                lastRestartDate = DateTime.Parse(lastRestartDateStr);
+                if (int.TryParse(restartAtHourStr, out restartAtHour))
+                {
+                    restartAtHour = 4;
+                }
+
                 Application.Run(new mainWindow());
                 throw new System.ArgumentException("Application Intentional Crash");
             }
@@ -63,6 +66,7 @@ namespace KioskAppNetWrapper
                 SettingsHelper.AddUpdateAppSettings("lastRestartDate", currentDay.ToLongTimeString());
 
                 // Restarts the timer and increments the counter.
+                MailHelper.sendMail("Application Restarting", "application restarting at 5:00 am as planned");
                 restartHost();
             }
             else
@@ -117,23 +121,26 @@ namespace KioskAppNetWrapper
         static void ShowExceptionDetails(Exception Ex)
         {
             // Do logging of exception details
-            MessageBox.Show(Ex.Message, Ex.TargetSite.ToString(),
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             ReopenApp();
 
         }
 
         static void ReopenApp()
         {
-            if (!allowRestart) {
+            if (!allowRestart)
+            {
+                MailHelper.sendMail("Application Relaunching", "some failure cause the application to relaunch");
                 ProcessStartInfo Info = new ProcessStartInfo();
                 Info.Arguments = "/C ping 127.0.0.1 -n 2 && \"" + Application.ExecutablePath + "\"";
                 Info.WindowStyle = ProcessWindowStyle.Hidden;
                 Info.CreateNoWindow = true;
                 Info.FileName = "cmd.exe";
                 Process.Start(Info);
-            } 
-            
+            }
+            else {
+                MailHelper.sendMail("Application Restarting", "application restarting at 5:00 am as planned");
+            }
+
             Application.Exit();
 
         }
